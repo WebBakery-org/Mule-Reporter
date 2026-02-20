@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  mule:
+    image: ${MULE_REGISTRY}mule-reporter:latest
+    ports:
+      - target: 777
+        published: 777
+        protocol: tcp
+        mode: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /srv:/srv:ro
+      - /:/host:ro
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 10M
+        reservations:
+          memory: 6M

@@ -1,0 +1,14 @@
+# build
+FROM golang:1.24.4-alpine AS builder
+WORKDIR /mule
+COPY go-source .
+COPY docker/conf.ini .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o mule-reporter
+
+# runtime
+FROM scratch
+COPY --from=builder /mule/mule-reporter /mule-reporter
+COPY --from=builder /mule/conf.ini /conf.ini
+EXPOSE 777
+# run time (not exactly the same, notice the space)
+ENTRYPOINT ["/mule-reporter"]

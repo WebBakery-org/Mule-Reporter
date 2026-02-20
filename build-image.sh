@@ -1,0 +1,1 @@
+docker build -t mule-reporter -f ./docker/dockerfile .
