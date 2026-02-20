@@ -19,7 +19,7 @@ If you're a company that want to seem dead serious in front of your customers, d
 
 It runs on every node. You ask it `size` on port 777 (default but configurable) with TCP, and it answers something like `{"size": 13546712}` in a json object.
 
-Why ? Because I can ! Also fuck off acts like sort of a check, indicating that all the TCP packets has arrived.
+Why ? Because I can !
 
 ![mule communication](images/received.png)
 

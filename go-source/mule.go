@@ -79,7 +79,7 @@ func main() {
 	ln, err := net.Listen("tcp", ":"+port)
 	ReportError(err)
 	fmt.Printf(
-		"Mule-Reporter (%s-%s)\nis ready to tell people to fuck off from:\nhost:\t\t\t%s\non port:\t\t%s\n",
+		"Mule-Reporter (%s-%s)\nis ready on:\nhost:\t\t\t%s\non port:\t\t%s\n",
 		this.Version,
 		this.Codename,
 		this.Hostname,
