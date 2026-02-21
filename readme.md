@@ -1,6 +1,6 @@
 # Mule-Reporter
 
-It's a damn fast and light agent.
+It's a damn fast and light (less than 10Mb RAM, less than 4Mb of storage) agent.
 Pretty simple too.
 
 ## DISCLAIMER
@@ -67,16 +67,17 @@ It's all in your Swarm, like other Docker services:
 
 **Also important**: The Mule can deal with encrypted disks with LUKS. It can also deal with old HD mounts, virtual disks, logical partitions, and standard disks as well as not encrypted NVMEs. As long as they're mounted of course.
 
-**Nota Bene** (I could find names for this all day): The Mule has been designed to work on Linux systems. If you're using Windows, know that a lot of features won't work as intended (if not **every** feature will work in unattended ways).
+**Nota Bene** (I could find names for this all day): The Mule has been designed to work on Linux systems. If you're using Windows, know that a lot of features won't work as intended (if not **every** feature will work in unintended ways).
 
 **Disk types**: You should be aware that there are different types of disks.
 Currently mapped disk types, returned when asked to by the Mule, are as follows:
 - 0. SSD
 - 1. HDD
 - 7. ERR (error while reading disk descriptor)
+
 They've been mapped like this originally based on their ability to "turn" physically. When casted to a boolean, a SSD can't turn, a HDD can, and the max value of an `uint8` (the type this value is stored on) is 7.
 
-Send `what` or `what?` to the Mule, and it will answer all the informations it got at once, that will be something like:
+Send `what` or `what?` to the Mule, and it will answer all the informations it got at once, that will look like:
 ```json
 ❯ echo what | nc localhost 777 | jq
 {
@@ -173,7 +174,7 @@ If you want to have informations about all the connected partitions and disks on
 			"type": 0,
 			"partitions": [
 				{
-					"path": "/media/XXXX/AdditionalSSD",
+					"path": "/media/XXXXX/AdditionalSSD",
 					"size": 983334674432,
 					"free": 223960137728
 				}
@@ -216,5 +217,17 @@ What the Dockerfile does **NOT** do (and that the docker stack file does):
 ## this project depends on some third-party libraries:
 - gopkg.in/ini.v1
 	- To read the same ini file used to interact with the backend
+
+## Performances
+I like to show off a program when it runs well. Here are the stats of the Mule-Reporter:
+### Client-side response time on localhost, when hosted on a swarm cluster
+*(It's in micro-seconds, or µs. If you want that in milliseconds or ms, divide by 1000)*
+![Micro seconds response time on localhost](images/response-time.png)
+### RAM usage
+Idle Mule's RAM usage (can go up to 9.8Mb)
+![Mule's RAM usage](images/ram-usage.png)
+### Mule's size in storage
+The Mule doesn't take that much space for itself, and still, it does its work just fine:
+![Mule's storage usage](images/storage-usage.png)
 ## todo:
 - configure auto /etc/docker/daemon.json config ("insecure-registries" : ["192.168.1.XX:5000"])
