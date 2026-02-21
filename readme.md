@@ -21,6 +21,7 @@ It runs on every node. You ask it `size` on port 777 (default but configurable) 
 
 Why ? Because I can !
 
+*Screenshot from a previous version of the Mule, please refer to the textual documentation*
 ![mule communication](images/received.png)
 
 I'll add more system health checks to Mule Reporter later.
@@ -31,10 +32,19 @@ First, make sure your docker/conf.ini file is on-point:
 It should contain a section named `PORT_CONFIG`, and a key-value pair named to `talkport` mapped to the port you wanna communicate with Mule on.
 
 ```ini
-[PORT_CONFIG]
+[PORTS]
 talkport=777
+[ENV]
+root="/host"
 ```
 
+`talkport` is the port you're communicating with the Mule on.
+
+`root` is the path to the root directory of your machine, from the mule. By default, it's set to `"/host"` because that's what the docker stack deployment file provides as a mountpoint for the root directory.
+
+It's really important you set the `root` value to the root directory of your machine, or a chroot and not any fake root directory, because it's from that directory the Mule will know where to find other important Linux system files.
+
+*Screenshot from a previous version of the Mule, please refer to the textual documentation*
 ![configuration](images/conf.png)
 
 **Make susre your firewall is configured accordingly, as the Mule will answer anybody querying it**.
@@ -48,27 +58,139 @@ It's all in your Swarm, like other Docker services:
 ```bash
 ./deploy-stack.sh health # deploys a stack named 'health'
 ```
+*Screenshot from a previous version of the Mule, please refer to the textual documentation*
 ![deployment](images/deployment.png)
 
 ### Examples
-Send `what` or `what?` to the Mule, and it will answer something like:
+
+**Important**: While retrieving your disks, their partitions and their mountpoints, the Mule prevents duplicates, and only display the top mounting point of each partition. That way, you don't get confused when three different partitions of the same disk (apparently) have the same size and are mounted on different part of the root disk.
+
+**Also important**: The Mule can deal with encrypted disks with LUKS. It can also deal with old HD mounts, virtual disks, logical partitions, and standard disks as well as not encrypted NVMEs. As long as they're mounted of course.
+
+**Nota Bene** (I could find names for this all day): The Mule has been designed to work on Linux systems. If you're using Windows, know that a lot of features won't work as intended (if not **every** feature will work in unattended ways).
+
+**Disk types**: You should be aware that there are different types of disks.
+Currently mapped disk types, returned when asked to by the Mule, are as follows:
+- 0. SSD
+- 1. HDD
+- 7. ERR (error while reading disk descriptor)
+They've been mapped like this originally based on their ability to "turn" physically. When casted to a boolean, a SSD can't turn, a HDD can, and the max value of an `uint8` (the type this value is stored on) is 7.
+
+Send `what` or `what?` to the Mule, and it will answer all the informations it got at once, that will be something like:
 ```json
+❯ echo what | nc localhost 777 | jq
 {
-  "timestamp": 1771549366, // <- Unix timestamp to get the current time on the remote machine
-  "node": {
-    "hostname": "c3aec629c58b", // <- container or machine name if it's running on host
-    "version": "0.0.1", // <- Mule version that's answering and running on this machine
-    "codename": "Drunk", // <- Version codename (changes at major versions)
-    "port": "777" // <- Port used to communicate (that you should know already, if you got that info)
-  }
+	"timestamp": 1771648785,
+	"node": {
+		"RootDir": "/host",
+		"hostname": "4ac6ecd414d5",
+		"version": "0.0.2",
+		"codename": "Drunk",
+		"port": "777",
+		"disks": [
+			{
+				"name": "dm-1",
+				"type": 0,
+				"partitions": [
+					{
+						"path": "/",
+						"size": 966510419968,
+						"free": 91527176192
+					}
+				]
+			},
+			{
+				"name": "dm-3",
+				"type": 0,
+				"partitions": [
+					{
+						"path": "/media/XXXXX/AdditionalSSD",
+						"size": 983334674432,
+						"free": 223960137728
+					}
+				]
+			},
+			{
+				"name": "nvme0n1",
+				"type": 0,
+				"partitions": [
+					{
+						"path": "/boot",
+						"size": 989052928,
+						"free": 135188480
+					}
+				]
+			}
+		]
+	}
 }
 ```
 
-If you just wanna get the free size available on the cluster node (or machine if you're outside a cluster), send `size`:
+If you just wanna get the free size available on the cluster node (or machine if you're outside a cluster), send `storage`:
 ```json
-{
-  "size": 93170561024 // <- Number of free bytes on the host disk (not the container !!!)
-}
+[
+	{
+		"name": "dm-1",
+		"type": 0,
+		"partitions": [
+			{
+				"path": "/",
+				"size": 966510419968,
+				"free": 91527180288
+			}
+		]
+	},
+	{
+		"name": "dm-3",
+		"type": 0,
+		"partitions": [
+			{
+				"path": "/media/XXXXX/AdditionalSSD",
+				"size": 983334674432,
+				"free": 223960137728
+			}
+		]
+	}
+]
+```
+
+If you want to have informations about all the connected partitions and disks on the host system, though, you can ask the Mule `disks` or `disk` and it will tell you:
+```json
+	[
+		{
+			"name": "dm-1",
+			"type": 0,
+			"partitions": [
+				{
+					"path": "/",
+					"size": 966510419968,
+					"free": 91527180288
+				}
+			]
+		},
+		{
+			"name": "dm-3",
+			"type": 0,
+			"partitions": [
+				{
+					"path": "/media/XXXX/AdditionalSSD",
+					"size": 983334674432,
+					"free": 223960137728
+				}
+			]
+		},
+		{
+			"name": "nvme0n1",
+			"type": 0,
+			"partitions": [
+				{
+					"path": "/boot",
+					"size": 989052928,
+					"free": 135188480
+				}
+			]
+		}
+	]
 ```
 
 ### Who is the Mule ?
@@ -89,6 +211,7 @@ What the Dockerfile does **NOT** do (and that the docker stack file does):
 - Binds to the Docker socket to pilot it (upcoming features)
 
 
+*Screenshot from a previous version of the Mule, please refer to the textual documentation*
 ![Final demonstration](images/final_demonstration.png)
 ## this project depends on some third-party libraries:
 - gopkg.in/ini.v1
