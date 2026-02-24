@@ -5,6 +5,16 @@ Pretty simple too.
 
 The Mule is a lightweight, high-performance storage orchestration agent written in Go. It handles dynamic XFS volume provisioning, project-based quotas, and automated NFS exports for distributed environments like Docker Swarm.
 
+# TL;DR: Why the Mule?
+
+- **Performance**: <20ms orchestration (Go-powered).
+
+- **Security**: XFS Hard-Quotas & CIDR filtering.
+
+- **Zero Config**: Self-replicating agent (getme command).
+
+- **Lightweight**: 20MB RAM, 7MB Binary. No junk, just metal.
+
 ## DISCLAIMER
 
 The Mule (or Mule-Reporter, if you will) is bold.
@@ -301,5 +311,5 @@ And if that's still too many steps for you, I wrote it for you too. Check out [T
 
 Or simply run this, it does the same as I just described (though I'll never advise you to run some script you found online without reading it first):
 ```bash
-curl https://github.com/Webbakery-org/Mule-Reporter/from-machine.sh | bash
+./from-machine.sh <remote_ip> <port>
 ```

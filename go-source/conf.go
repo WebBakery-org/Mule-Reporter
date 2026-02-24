@@ -126,6 +126,17 @@ func GetConfig() *ini.File {
 	return cachedConfig
 }
 
+func GetConfigValue(section int, field int) (string, error) {
+	conf := GetConfig()
+	if !conf.HasSection(CONFIG_SECTION[section]) {
+		return "", fmt.Errorf("Configuration file doesn't contain any definition for this section, or it is not supported yet.\n")
+	}
+	if !conf.Section(CONFIG_SECTION[section]).HasKey(CONFIG_FIELDS[field]) {
+		return "", fmt.Errorf("Configuration file doesn't contain any definition for this key in section %s, or it is not supported yet.\n", CONFIG_SECTION[section])
+	}
+	return conf.Section(CONFIG_SECTION[section]).Key(CONFIG_FIELDS[field]).Value(), nil
+}
+
 func IsIPAuthorized(IP string) bool {
 	cidr, err := GetConfigValue(SECTION_ENV, FIELD_AUTHORIZED_IP)
 	ReportError(err)
@@ -140,17 +151,6 @@ func IsIPAuthorized(IP string) bool {
 	}
 	// Time to know if the IP is authorized
 	return ipNet.Contains(net.ParseIP(host))
-}
-
-func GetConfigValue(section int, field int) (string, error) {
-	conf := GetConfig()
-	if !conf.HasSection(CONFIG_SECTION[section]) {
-		return "", fmt.Errorf("Configuration file doesn't contain any definition for this section, or it is not supported yet.\n")
-	}
-	if !conf.Section(CONFIG_SECTION[section]).HasKey(CONFIG_FIELDS[field]) {
-		return "", fmt.Errorf("Configuration file doesn't contain any definition for this key in section %s, or it is not supported yet.\n", CONFIG_SECTION[section])
-	}
-	return conf.Section(CONFIG_SECTION[section]).Key(CONFIG_FIELDS[field]).Value(), nil
 }
 
 func GetOutboundIP() string {
